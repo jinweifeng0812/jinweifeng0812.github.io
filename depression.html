@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>儿童抑郁症预测模型</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .calculator {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .healthy {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .depressed {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .formula {
+            background-color: #e9ecef;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 20px 0;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <h1>儿童抑郁症预测模型</h1>
+        <p>请输入以下生物标志物的检测值：</p>
+        
+        <div class="input-group">
+            <label for="arginine">精氨酸水平：</label>
+            <input type="number" id="arginine" step="0.01" placeholder="请输入精氨酸水平">
+        </div>
+        
+        <div class="input-group">
+            <label for="aspartate">天冬氨酸水平：</label>
+            <input type="number" id="aspartate" step="0.01" placeholder="请输入天冬氨酸水平">
+        </div>
+        
+        <div class="input-group">
+            <label for="glutamate">谷氨酸水平：</label>
+            <input type="number" id="glutamate" step="0.01" placeholder="请输入谷氨酸水平">
+        </div>
+        
+        <div class="input-group">
+            <label for="il2">白细胞介素2水平：</label>
+            <input type="number" id="il2" step="0.01" placeholder="请输入白细胞介素2水平">
+        </div>
+        
+        <div class="input-group">
+            <label for="serotonin">5羟色胺水平：</label>
+            <input type="number" id="serotonin" step="0.01" placeholder="请输入5羟色胺水平">
+        </div>
+        
+        <button onclick="calculateProbability()">计算预测概率</button>
+        
+        <div class="formula">
+            LogitP = -0.16 - 0.27×精氨酸 - 0.41×天冬氨酸 + 0.15×谷氨酸 + 0.057×白细胞介素2 - 0.01×5羟色胺
+        </div>
+        
+        <div id="result" class="result"></div>
+    </div>
+
+    <script>
+        function calculateProbability() {
+            // 获取输入值
+            const arginine = parseFloat(document.getElementById('arginine').value);
+            const aspartate = parseFloat(document.getElementById('aspartate').value);
+            const glutamate = parseFloat(document.getElementById('glutamate').value);
+            const il2 = parseFloat(document.getElementById('il2').value);
+            const serotonin = parseFloat(document.getElementById('serotonin').value);
+            
+            // 检查是否有未输入的值
+            if (isNaN(arginine) || isNaN(aspartate) || isNaN(glutamate) || isNaN(il2) || isNaN(serotonin)) {
+                alert('请输入所有生物标志物的水平');
+                return;
+            }
+            
+            // 计算LogitP
+            const logitP = -0.16 - 0.27*arginine - 0.41*aspartate + 0.15*glutamate + 0.057*il2 - 0.01*serotonin;
+            
+            // 计算概率
+            const probability = 1 / (1 + Math.exp(-logitP));
+            
+            // 计算NOMO总得分
+            const nomoScore = Math.round(logitP * 100);
+            
+            // 显示结果
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = `
+                <p>预测概率：${(probability * 100).toFixed(2)}%</p>
+                <p>NOMO总得分：${nomoScore}</p>
+                <p>预测结果：${probability >= 0.5 ? '可能为抑郁症儿童' : '可能为健康人群'}</p>
+            `;
+            
+            // 添加样式
+            resultDiv.className = 'result ' + (probability >= 0.5 ? 'depressed' : 'healthy');
+        }
+    </script>
+</body>
+</html>
