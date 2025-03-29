@@ -3,149 +3,567 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>儿童抑郁症预测模型</title>
+    <title>儿童抑郁障碍临床风险模型评估工具</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
             max-width: 800px;
             margin: 0 auto;
             padding: 20px;
-            background-color: #f5f5f5;
+            color: #333;
+            background-color: #f5f7fa;
         }
         h1 {
-            color: #333;
+            color: #2c3e50;
             text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
         }
-        .calculator {
-            background-color: white;
-            padding: 20px;
+        .calculator-container, .tab-content {
+            background: white;
             border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            padding: 25px;
+            margin-bottom: 30px;
         }
-        .input-group {
-            margin-bottom: 15px;
+        .form-group {
+            margin-bottom: 20px;
         }
         label {
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
             font-weight: bold;
+            color: #2c3e50;
+        }
+        .input-container {
+            display: flex;
+            align-items: center;
         }
         input[type="number"] {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-sizing: border-box;
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        input[type="number"]:focus {
+            border-color: #3498db;
+            outline: none;
+        }
+        .unit {
+            margin-left: 10px;
+            color: #7f8c8d;
+            font-size: 14px;
+            min-width: 60px;
         }
         button {
-            background-color: #4CAF50;
+            background-color: #3498db;
             color: white;
-            padding: 10px 20px;
             border: none;
-            border-radius: 4px;
+            padding: 12px 20px;
+            border-radius: 6px;
             cursor: pointer;
-            width: 100%;
             font-size: 16px;
+            width: 100%;
+            transition: background-color 0.3s;
         }
         button:hover {
-            background-color: #45a049;
+            background-color: #2980b9;
         }
         .result {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+            display: none;
+            border: 1px solid #e0e0e0;
+        }
+        .result-title {
+            color: #2c3e50;
+            margin-top: 0;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        .probability-display {
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            margin: 15px 0;
+            color: #2c3e50;
+            font-family: monospace;
+        }
+        .probability-meter {
+            height: 40px;
+            background: linear-gradient(to right, #4CAF50, #FFC107, #F44336);
+            border-radius: 20px;
+            margin: 20px 0;
+            overflow: hidden;
+            position: relative;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
+        }
+        .probability-indicator {
+            position: absolute;
+            height: 100%;
+            width: 4px;
+            background-color: rgba(0,0,0,0.7);
+            top: 0;
+            left: 0;
+            transition: left 0.5s;
+        }
+        .probability-value {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #000;
+            font-weight: bold;
+            text-shadow: 0 0 3px white;
+        }
+        .nomogram-scores {
+            margin-top: 25px;
+        }
+        .score-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px dashed #eee;
+        }
+        .score-label {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .score-value {
+            font-weight: bold;
+        }
+        .total-score {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px solid #3498db;
+            font-size: 18px;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #f1f1f1;
+            border: none;
+            outline: none;
+            transition: 0.3s;
+            border-radius: 5px 5px 0 0;
+            margin-right: 5px;
+        }
+        .tab.active {
+            background-color: #3498db;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .score-table {
+            width: 100%;
+            border-collapse: collapse;
             margin-top: 20px;
-            padding: 15px;
-            border-radius: 5px;
+        }
+        .score-table th, .score-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
             text-align: center;
         }
-        .healthy {
-            background-color: #d4edda;
-            color: #155724;
-        }
-        .depressed {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
-        .formula {
-            background-color: #e9ecef;
-            padding: 10px;
-            border-radius: 5px;
-            margin: 20px 0;
-            font-family: monospace;
+        .score-table th {
+            background-color: #f2f2f2;
         }
     </style>
 </head>
 <body>
-    <div class="calculator">
-        <h1>儿童抑郁症预测模型</h1>
-        <p>请输入以下生物标志物的检测值：</p>
-        
-        <div class="input-group">
-            <label for="arginine">精氨酸水平：</label>
-            <input type="number" id="arginine" step="0.01" placeholder="请输入精氨酸水平">
-        </div>
-        
-        <div class="input-group">
-            <label for="aspartate">天冬氨酸水平：</label>
-            <input type="number" id="aspartate" step="0.01" placeholder="请输入天冬氨酸水平">
-        </div>
-        
-        <div class="input-group">
-            <label for="glutamate">谷氨酸水平：</label>
-            <input type="number" id="glutamate" step="0.01" placeholder="请输入谷氨酸水平">
-        </div>
-        
-        <div class="input-group">
-            <label for="il2">白细胞介素2水平：</label>
-            <input type="number" id="il2" step="0.01" placeholder="请输入白细胞介素2水平">
-        </div>
-        
-        <div class="input-group">
-            <label for="serotonin">5羟色胺水平：</label>
-            <input type="number" id="serotonin" step="0.01" placeholder="请输入5羟色胺水平">
-        </div>
-        
-        <button onclick="calculateProbability()">计算预测概率</button>
-        
-        <div class="formula">
-            LogitP = -0.16 - 0.27×精氨酸 - 0.41×天冬氨酸 + 0.15×谷氨酸 + 0.057×白细胞介素2 - 0.01×5羟色胺
-        </div>
-        
-        <div id="result" class="result"></div>
+    <h1>儿童抑郁障碍临床风险模型评估工具</h1>
+    
+    <div class="tabs">
+        <button class="tab active" onclick="openTab(event, 'calculator')">风险计算器</button>
+        <button class="tab" onclick="openTab(event, 'score-tables')">评分表</button>
+        <button class="tab" onclick="openTab(event, 'about')">关于</button>
     </div>
-
+    
+    <div id="calculator" class="tab-content active">
+        <div class="calculator-container">
+            <h2>生物标志物检测结果输入</h2>
+            <form id="risk-form">
+                <div class="form-group">
+                    <label for="arginine">精氨酸 Arginine</label>
+                    <div class="input-container">
+                        <input type="number" id="arginine" min="2" max="28" step="2" required>
+                        <span class="unit">μg/mL</span>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="asparagine">天冬酰胺 Asparagine</label>
+                    <div class="input-container">
+                        <input type="number" id="asparagine" min="0" max="13" step="1" required>
+                        <span class="unit">μg/mL</span>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="glutamic-acid">谷氨酸 Glutamic Acid</label>
+                    <div class="input-container">
+                        <input type="number" id="glutamic-acid" min="0" max="50" step="5" required>
+                        <span class="unit">μg/mL</span>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="il2">白细胞介素-2 IL-2</label>
+                    <div class="input-container">
+                        <input type="number" id="il2" min="1.0" max="7.0" step="0.5" required>
+                        <span class="unit">pg/mL</span>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="serotonin">血清素 Serotonin</label>
+                    <div class="input-container">
+                        <input type="number" id="serotonin" min="0" max="400" step="50" required>
+                        <span class="unit">ng/mL</span>
+                    </div>
+                </div>
+                
+                <button type="button" onclick="calculateRisk()">计算风险概率</button>
+            </form>
+            
+            <div id="result" class="result">
+                <h3 class="result-title">评估结果</h3>
+                <div class="probability-display">
+                    抑郁障碍概率: <span id="probability">0.00</span>%
+                </div>
+                
+                <div class="probability-meter">
+                    <div id="probability-indicator" class="probability-indicator"></div>
+                    <div class="probability-value"><span id="probability-text">0.00</span>%</div>
+                </div>
+                
+                <div class="nomogram-scores">
+                    <h4>个体化诺莫得分</h4>
+                    <div class="score-item">
+                        <span class="score-label">精氨酸 Arginine</span>
+                        <span id="arginine-score" class="score-value">0</span> 分
+                    </div>
+                    <div class="score-item">
+                        <span class="score-label">天冬酰胺 Asparagine</span>
+                        <span id="asparagine-score" class="score-value">0</span> 分
+                    </div>
+                    <div class="score-item">
+                        <span class="score-label">谷氨酸 Glutamic Acid</span>
+                        <span id="glutamic-acid-score" class="score-value">0</span> 分
+                    </div>
+                    <div class="score-item">
+                        <span class="score-label">白细胞介素-2 IL-2</span>
+                        <span id="il2-score" class="score-value">0</span> 分
+                    </div>
+                    <div class="score-item">
+                        <span class="score-label">血清素 Serotonin</span>
+                        <span id="serotonin-score" class="score-value">0</span> 分
+                    </div>
+                    <div class="score-item total-score">
+                        <span class="score-label">总评分</span>
+                        <span id="total-score" class="score-value">0</span> 分
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="score-tables" class="tab-content">
+        <div class="calculator-container">
+            <h2>诺莫图评分表</h2>
+            
+            <h3>精氨酸 Arginine 评分 (μg/mL)</h3>
+            <table class="score-table">
+                <tr><th>水平</th><th>得分</th></tr>
+                <tr><td>2</td><td>75</td></tr>
+                <tr><td>4</td><td>69</td></tr>
+                <tr><td>6</td><td>63</td></tr>
+                <tr><td>8</td><td>58</td></tr>
+                <tr><td>10</td><td>52</td></tr>
+                <tr><td>12</td><td>46</td></tr>
+                <tr><td>14</td><td>40</td></tr>
+                <tr><td>16</td><td>35</td></tr>
+                <tr><td>18</td><td>29</td></tr>
+                <tr><td>20</td><td>23</td></tr>
+                <tr><td>22</td><td>17</td></tr>
+                <tr><td>24</td><td>12</td></tr>
+                <tr><td>26</td><td>6</td></tr>
+                <tr><td>28</td><td>0</td></tr>
+            </table>
+            
+            <h3>天冬酰胺 Asparagine 评分 (μg/mL)</h3>
+            <table class="score-table">
+                <tr><th>水平</th><th>得分</th></tr>
+                <tr><td>0</td><td>58</td></tr>
+                <tr><td>1</td><td>54</td></tr>
+                <tr><td>2</td><td>49</td></tr>
+                <tr><td>3</td><td>45</td></tr>
+                <tr><td>4</td><td>40</td></tr>
+                <tr><td>5</td><td>36</td></tr>
+                <tr><td>6</td><td>31</td></tr>
+                <tr><td>7</td><td>27</td></tr>
+                <tr><td>8</td><td>22</td></tr>
+                <tr><td>9</td><td>18</td></tr>
+                <tr><td>10</td><td>13</td></tr>
+                <tr><td>11</td><td>9</td></tr>
+                <tr><td>12</td><td>4</td></tr>
+                <tr><td>13</td><td>0</td></tr>
+            </table>
+            
+            <h3>谷氨酸 Glutamic Acid 评分 (μg/mL)</h3>
+            <table class="score-table">
+                <tr><th>水平</th><th>得分</th></tr>
+                <tr><td>0</td><td>0</td></tr>
+                <tr><td>5</td><td>9</td></tr>
+                <tr><td>10</td><td>17</td></tr>
+                <tr><td>15</td><td>26</td></tr>
+                <tr><td>20</td><td>35</td></tr>
+                <tr><td>25</td><td>43</td></tr>
+                <tr><td>30</td><td>52</td></tr>
+                <tr><td>35</td><td>61</td></tr>
+                <tr><td>40</td><td>69</td></tr>
+                <tr><td>45</td><td>78</td></tr>
+                <tr><td>50</td><td>86</td></tr>
+            </table>
+            
+            <h3>白细胞介素-2 IL-2 评分 (pg/mL)</h3>
+            <table class="score-table">
+                <tr><th>水平</th><th>得分</th></tr>
+                <tr><td>1.0</td><td>0</td></tr>
+                <tr><td>1.5</td><td>8</td></tr>
+                <tr><td>2.0</td><td>17</td></tr>
+                <tr><td>2.5</td><td>25</td></tr>
+                <tr><td>3.0</td><td>33</td></tr>
+                <tr><td>3.5</td><td>42</td></tr>
+                <tr><td>4.0</td><td>50</td></tr>
+                <tr><td>4.5</td><td>58</td></tr>
+                <tr><td>5.0</td><td>67</td></tr>
+                <tr><td>5.5</td><td>75</td></tr>
+                <tr><td>6.0</td><td>83</td></tr>
+                <tr><td>6.5</td><td>92</td></tr>
+                <tr><td>7.0</td><td>100</td></tr>
+            </table>
+            
+            <h3>血清素 Serotonin 评分 (ng/mL)</h3>
+            <table class="score-table">
+                <tr><th>水平</th><th>得分</th></tr>
+                <tr><td>0</td><td>38</td></tr>
+                <tr><td>50</td><td>33</td></tr>
+                <tr><td>100</td><td>28</td></tr>
+                <tr><td>150</td><td>23</td></tr>
+                <tr><td>200</td><td>19</td></tr>
+                <tr><td>250</td><td>14</td></tr>
+                <tr><td>300</td><td>9</td></tr>
+                <tr><td>350</td><td>5</td></tr>
+                <tr><td>400</td><td>0</td></tr>
+            </table>
+            
+            <h3>总评分与诊断可能性</h3>
+            <table class="score-table">
+                <tr><th>总评分</th><th>抑郁障碍概率</th></tr>
+                <tr><td>124</td><td>1%</td></tr>
+                <tr><td>149</td><td>10%</td></tr>
+                <tr><td>157</td><td>20%</td></tr>
+                <tr><td>163</td><td>30%</td></tr>
+                <tr><td>168</td><td>40%</td></tr>
+                <tr><td>172</td><td>50%</td></tr>
+                <tr><td>176</td><td>60%</td></tr>
+                <tr><td>181</td><td>70%</td></tr>
+                <tr><td>186</td><td>80%</td></tr>
+                <tr><td>195</td><td>90%</td></tr>
+            </table>
+        </div>
+    </div>
+    
+    <div id="about" class="tab-content">
+        <div class="calculator-container">
+            <h2>关于此工具</h2>
+            <p>此工具基于二元逻辑回归模型构建，用于评估儿童抑郁障碍的临床风险。</p>
+            
+            <h3>回归方程</h3>
+            <p>logitP = -1.124 - 0.274×Arginine - 0.426×Asparagine + 0.164×Glutamic Acid + 1.583×IL-2 - 0.009×Serotonin</p>
+            
+            <h3>使用方法</h3>
+            <ol>
+                <li>在"风险计算器"选项卡中输入各项生物标志物的检测结果</li>
+                <li>点击"计算风险概率"按钮</li>
+                <li>查看评估结果，包括总评分和抑郁障碍概率</li>
+                <li>如需参考原始评分标准，请查看"评分表"选项卡</li>
+            </ol>
+            
+            <h3>注意事项</h3>
+            <ul>
+                <li>此工具仅供临床参考，不能替代专业医生的诊断</li>
+                <li>5项指标为血清测定结果</li>
+                <li>由于涉及到炎症指标，请在抽血前保证个体表观健康，无发热等症状</li>
+            </ul>
+        </div>
+    </div>
+    
     <script>
-        function calculateProbability() {
+        // 定义评分表数据
+        const scoreTables = {
+            arginine: {
+                2: 75, 4: 69, 6: 63, 8: 58, 10: 52, 12: 46, 14: 40,
+                16: 35, 18: 29, 20: 23, 22: 17, 24: 12, 26: 6, 28: 0
+            },
+            asparagine: {
+                0: 58, 1: 54, 2: 49, 3: 45, 4: 40, 5: 36, 6: 31,
+                7: 27, 8: 22, 9: 18, 10: 13, 11: 9, 12: 4, 13: 0
+            },
+            glutamicAcid: {
+                0: 0, 5: 9, 10: 17, 15: 26, 20: 35, 25: 43, 30: 52,
+                35: 61, 40: 69, 45: 78, 50: 86
+            },
+            il2: {
+                1.0: 0, 1.5: 8, 2.0: 17, 2.5: 25, 3.0: 33, 3.5: 42, 4.0: 50,
+                4.5: 58, 5.0: 67, 5.5: 75, 6.0: 83, 6.5: 92, 7.0: 100
+            },
+            serotonin: {
+                0: 38, 50: 33, 100: 28, 150: 23, 200: 19, 250: 14,
+                300: 9, 350: 5, 400: 0
+            }
+        };
+
+        function openTab(evt, tabName) {
+            var i, tabcontent, tablinks;
+            
+            tabcontent = document.getElementsByClassName("tab-content");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].classList.remove("active");
+            }
+            
+            tablinks = document.getElementsByClassName("tab");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].classList.remove("active");
+            }
+            
+            document.getElementById(tabName).classList.add("active");
+            evt.currentTarget.classList.add("active");
+        }
+        
+        function calculateRisk() {
             // 获取输入值
             const arginine = parseFloat(document.getElementById('arginine').value);
-            const aspartate = parseFloat(document.getElementById('aspartate').value);
-            const glutamate = parseFloat(document.getElementById('glutamate').value);
+            const asparagine = parseFloat(document.getElementById('asparagine').value);
+            const glutamicAcid = parseFloat(document.getElementById('glutamic-acid').value);
             const il2 = parseFloat(document.getElementById('il2').value);
             const serotonin = parseFloat(document.getElementById('serotonin').value);
             
-            // 检查是否有未输入的值
-            if (isNaN(arginine) || isNaN(aspartate) || isNaN(glutamate) || isNaN(il2) || isNaN(serotonin)) {
-                alert('请输入所有生物标志物的水平');
+            // 验证输入
+            if (isNaN(arginine) || isNaN(asparagine) || isNaN(glutamicAcid) || isNaN(il2) || isNaN(serotonin)) {
+                alert("请输入所有生物标志物的检测结果");
                 return;
             }
             
-            // 计算LogitP
-            const logitP = -0.16 - 0.27*arginine - 0.41*aspartate + 0.15*glutamate + 0.057*il2 - 0.01*serotonin;
+            // 计算各项得分（四舍五入为整数）
+            const arginineScore = Math.round(getScore('arginine', arginine));
+            const asparagineScore = Math.round(getScore('asparagine', asparagine));
+            const glutamicAcidScore = Math.round(getScore('glutamicAcid', glutamicAcid));
+            const il2Score = Math.round(getScore('il2', il2));
+            const serotoninScore = Math.round(getScore('serotonin', serotonin));
             
-            // 计算概率
-            const probability = 1 / (1 + Math.exp(-logitP));
+            // 计算总评分（四舍五入为整数）
+            const totalScore = Math.round(arginineScore + asparagineScore + glutamicAcidScore + il2Score + serotoninScore);
             
-            // 计算NOMO总得分
-            const nomoScore = Math.round(logitP * 100);
+            // 根据总评分计算诊断可能性
+            const diagnosticPossibility = getDiagnosticPossibility(totalScore);
             
             // 显示结果
-            const resultDiv = document.getElementById('result');
-            resultDiv.innerHTML = `
-                <p>预测概率：${(probability * 100).toFixed(2)}%</p>
-                <p>NOMO总得分：${nomoScore}</p>
-                <p>预测结果：${probability >= 0.5 ? '可能为抑郁症儿童' : '可能为健康人群'}</p>
-            `;
+            const probabilityPercent = (diagnosticPossibility * 100).toFixed(2);
+            document.getElementById('probability').textContent = probabilityPercent;
+            document.getElementById('probability-text').textContent = probabilityPercent;
+            document.getElementById('probability-indicator').style.left = `${diagnosticPossibility * 100}%`;
             
-            // 添加样式
-            resultDiv.className = 'result ' + (probability >= 0.5 ? 'depressed' : 'healthy');
+            // 显示个体化诺莫得分（整数）
+            document.getElementById('arginine-score').textContent = arginineScore;
+            document.getElementById('asparagine-score').textContent = asparagineScore;
+            document.getElementById('glutamic-acid-score').textContent = glutamicAcidScore;
+            document.getElementById('il2-score').textContent = il2Score;
+            document.getElementById('serotonin-score').textContent = serotoninScore;
+            document.getElementById('total-score').textContent = totalScore;
+            
+            // 显示结果区域
+            document.getElementById('result').style.display = 'block';
+        }
+        
+        // 严格按评分表获取得分
+        function getScore(type, value) {
+            const table = scoreTables[type];
+            const keys = Object.keys(table).map(Number).sort((a, b) => a - b);
+            
+            // 边界处理
+            if (value <= keys[0]) return table[keys[0]];
+            if (value >= keys[keys.length - 1]) return table[keys[keys.length - 1]];
+            
+            // 精确匹配
+            for (let i = 0; i < keys.length; i++) {
+                if (value === keys[i]) return table[keys[i]];
+            }
+            
+            // 对于不在精确匹配的值，使用线性插值
+            for (let i = 0; i < keys.length - 1; i++) {
+                if (value > keys[i] && value < keys[i + 1]) {
+                    const x0 = keys[i], x1 = keys[i + 1];
+                    const y0 = table[x0], y1 = table[x1];
+                    return y0 + (y1 - y0) * (value - x0) / (x1 - x0);
+                }
+            }
+            
+            return 0;
+        }
+        
+        // 根据诺莫图获取诊断可能性（精确校准版）
+        function getDiagnosticPossibility(totalScore) {
+            // 定义精确的评分-概率对应点（按诺莫图校准）
+            const points = [
+                {score: 124, possibility: 0.01},  // 1%
+                {score: 149, possibility: 0.10},  // 10%
+                {score: 157, possibility: 0.20},  // 20%
+                {score: 163, possibility: 0.30},  // 30%
+                {score: 168, possibility: 0.40},  // 40%
+                {score: 172, possibility: 0.50},  // 50%
+                {score: 176, possibility: 0.60},  // 60%
+                {score: 181, possibility: 0.70},  // 70%
+                {score: 186, possibility: 0.80},  // 80%
+                {score: 195, possibility: 0.90}   // 90%
+            ].sort((a,b) => a.score - b.score);
+            
+            // 处理低于1%的情况
+            if (totalScore < 124) {
+                return 0.00;
+            }
+            
+            // 边界处理
+            if (totalScore <= points[0].score) return points[0].possibility;
+            if (totalScore >= points[points.length-1].score) return points[points.length-1].possibility;
+            
+            // 查找所在区间
+            for (let i = 0; i < points.length - 1; i++) {
+                if (totalScore >= points[i].score && totalScore <= points[i+1].score) {
+                    // 线性插值
+                    const ratio = (totalScore - points[i].score) / (points[i+1].score - points[i].score);
+                    return parseFloat((points[i].possibility + 
+                                     ratio * (points[i+1].possibility - points[i].possibility)).toFixed(4));
+                }
+            }
+            
+            return 0;
         }
     </script>
 </body>
